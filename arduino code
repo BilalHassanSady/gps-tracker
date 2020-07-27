@@ -1,0 +1,44 @@
+#include <SoftwareSerial.h>
+#include <TinyGPS.h>
+
+TinyGPS gps ;
+SoftwareSerial sgps(RX,TX);//for gps module
+SoftwareSerial sgsm(RX,TX);//for gsm module
+
+float gpslat, gpslon;
+
+ void setup() {
+  sgps.begin(9600);
+  sgsm.begin(9600);
+}
+
+void loop() {
+  while(sgps.available()>0){
+    int c = sgps.read();
+    if(gps.encode(c)){
+      gps.f_get_position(&gpslat,&gpslon);
+    }
+  }
+  if(sgsm.available()>0){
+    String c = sgsm.readString();
+    c.trim();
+    if(c.indexOf("GET-GPS")>=0){
+        sgsm.print("\r");
+        delay(1000);
+        sgsm.print("AT+CMGF=1\r");
+        delay(1000);
+        /*Replace XXXXXXXXXX to the your number &
+          ZZ to 2 digit country code*/
+        sgsm.print("AT+CMGS=\"+ZZXXXXXXXXXX\"\r");
+        delay(1000);
+        //The text of the message to be sent.
+        sgsm.print("https://www.google.com/maps/?q=");
+        sgsm.print(gpslat, 6);
+        sgsm.print(",");
+        sgsm.print(gpslon, 6);
+        delay(1000);
+        sgsm.write(0x1A);
+        delay(1000);
+      }
+  }
+}
