@@ -10,6 +10,8 @@ float gpslat, gpslon;
  void setup() {
   sgps.begin(9600);
   sgsm.begin(9600);
+  sgsm.print("AT+CNMI=2,2,0,0,0\r"); 
+  delay(100);
 }
 
 void loop() {
